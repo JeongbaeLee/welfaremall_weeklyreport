@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>복지몰사업팀 주간보고</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --line:#e3e6ea; --line2:#eef0f3;
+    --ink:#1d2330; --ink2:#4a5263; --muted:#8a92a3;
+    --accent:#1f3a68; --accent-soft:#eef2f8; --danger:#b42318;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  button,input,select,textarea{font:inherit;color:inherit}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+  /* top bar */
+  .top{background:var(--card);border-bottom:1px solid var(--line)}
+  .top .wrap{display:flex;align-items:center;gap:24px;height:56px}
+  .brand{font-weight:700;font-size:15px;letter-spacing:-.2px}
+  .tabs{display:flex;gap:4px;margin-left:auto}
+  .tab{border:0;background:none;padding:8px 14px;border-radius:6px;cursor:pointer;color:var(--ink2)}
+  .tab:hover{background:var(--line2)}
+  .tab.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+
+  main{padding:24px 0 48px}
+  .page{display:none}
+  .page.on{display:block}
+
+  .btn{border:1px solid var(--line);background:var(--card);padding:7px 14px;border-radius:6px;cursor:pointer;white-space:nowrap}
+  .btn:hover{border-color:#c9ced6}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{opacity:.92}
+  .btn.sm{padding:3px 9px;font-size:12px}
+  .btn.ghost{border-color:transparent;background:none;color:var(--muted)}
+  .btn.ghost:hover{color:var(--ink);background:var(--line2)}
+  .btn.danger{color:var(--danger)}
+  .btn:disabled{opacity:.45;cursor:default}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px}
+  h2{font-size:18px;margin:0;letter-spacing:-.3px}
+  .sub{color:var(--muted);font-size:13px}
+
+  /* input page */
+  .in-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+  .in-grid .card{padding:18px}
+  .card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}
+  .card-h h3{font-size:15px;margin:0}
+  textarea#raw{width:100%;min-height:460px;resize:vertical;border:1px solid var(--line);border-radius:8px;padding:12px;line-height:1.6;background:#fcfcfd}
+  textarea#raw:focus,input:focus,select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+  .editing-bar{display:none;background:var(--accent-soft);color:var(--accent);border-radius:8px;padding:10px 14px;margin-bottom:16px;align-items:center;justify-content:space-between}
+  .editing-bar.on{display:flex}
+  .pv-empty{color:var(--muted);padding:40px 0;text-align:center}
+  .pv{border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:12px}
+  .pv-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+  .pv-meta label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px}
+  .pv-meta input,.pv-meta select{border:1px solid var(--line);border-radius:6px;padding:4px 6px;background:#fff}
+  .pv-meta input.name{width:90px}
+  .pv-meta input.num{width:52px}
+  .pv-warn{color:var(--danger);font-size:12px;margin-top:6px}
+  .pv-exists{font-size:12px;color:#9a6700;margin-top:6px}
+  .pv-sec{font-size:12px;color:var(--muted);margin:8px 0 2px}
+  .pv ul{margin:0;padding-left:18px}
+  .pv li{margin:1px 0}
+  .in-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+
+  /* dashboard */
+  .dash-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+  .dash-title .team{font-size:13px;color:var(--muted)}
+  .dash-title h1{font-size:24px;margin:2px 0 0;letter-spacing:-.5px}
+  .dash-ctrl{display:flex;gap:6px;align-items:center}
+  .dash-ctrl select{border:1px solid var(--line);border-radius:6px;padding:6px 8px;background:#fff}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;display:flex;align-items:baseline;justify-content:space-between}
+  .stat .k{color:var(--ink2);font-size:13px}
+  .stat .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+  .stat .v small{font-size:13px;font-weight:500;color:var(--muted);margin-left:2px}
+
+  .board{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .row{display:grid;grid-template-columns:130px 1fr 1fr;border-top:1px solid var(--line)}
+  .row:first-child{border-top:0}
+  .row.head{background:#fafbfc;font-size:12px;color:var(--muted);font-weight:600}
+  .row.head > div{padding:9px 16px}
+  .cell{padding:14px 16px;border-left:1px solid var(--line2);min-width:0}
+  .cell:first-child{border-left:0}
+  .who{display:flex;flex-direction:column;gap:6px}
+  .who .nm{font-weight:700;font-size:15px}
+  .who .tools{display:flex;gap:2px;margin-left:-6px}
+  .items{list-style:none;margin:0;padding:0}
+  .items li{position:relative;padding-left:12px;margin:2px 0;word-break:keep-all;overflow-wrap:anywhere}
+  .items li::before{content:"";position:absolute;left:1px;top:.72em;width:4px;height:4px;border-radius:50%;background:#aab1bf}
+  .items .subs{list-style:none;padding:0;margin:1px 0 3px}
+  .items .subs li{color:var(--ink2);font-size:13px;padding-left:14px}
+  .items .subs li::before{content:"ㄴ";background:none;width:auto;height:auto;top:0;left:0;font-size:11px;color:var(--muted)}
+  .date{display:inline-block;font-size:11px;line-height:1;padding:3px 5px;border-radius:4px;background:var(--accent-soft);color:var(--accent);margin-left:5px;vertical-align:1px;font-variant-numeric:tabular-nums}
+  .none{color:var(--muted);font-size:13px}
+  .other{grid-column:2 / 4;padding:0 16px 12px;font-size:13px;color:var(--ink2)}
+  .other b{font-weight:600;color:var(--muted);margin-right:6px}
+  .dash-empty{padding:60px 20px;text-align:center;color:var(--muted)}
+  .foot{margin-top:10px;font-size:12px;color:var(--muted);text-align:right}
+
+  /* history */
+  .hist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+  table.hist{width:100%;border-collapse:collapse;background:var(--card)}
+  .hist th,.hist td{padding:11px 16px;border-top:1px solid var(--line);text-align:left;font-size:13px;vertical-align:middle}
+  .hist thead th{border-top:0;background:#fafbfc;color:var(--muted);font-weight:600;font-size:12px}
+  .hist tbody tr{cursor:pointer}
+  .hist tbody tr:hover{background:#fafbfc}
+  .hist .wk{font-weight:600;font-size:14px}
+  .hist .num{font-variant-numeric:tabular-nums}
+  .hist .names{color:var(--ink2)}
+  .hist .act{text-align:right;white-space:nowrap}
+
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:9px 16px;border-radius:8px;font-size:13px;opacity:0;transition:.2s;pointer-events:none}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:860px){
+    .in-grid{grid-template-columns:1fr}
+    .row{grid-template-columns:1fr}
+    .row.head{display:none}
+    .cell{border-left:0;border-top:1px solid var(--line2)}
+    .cell:first-child{border-top:0}
+    .cell[data-l]::before{content:attr(data-l);display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+    .other{grid-column:auto}
+    .stats{grid-template-columns:1fr}
+    .hist .names,.hist .upd{display:none}
+  }
+  @media print{
+    @page{size:A4 landscape;margin:12mm}
+    body{background:#fff;font-size:12px}
+    .top,.dash-ctrl,.who .tools,.foot,.toast{display:none!important}
+    main{padding:0}
+    .wrap{max-width:none;padding:0}
+    .page{display:none!important}
+    #page-dash{display:block!important}
+    .stat,.board{border-color:#ccc}
+    .row{break-inside:avoid}
+    .date{border:1px solid #c8d1e0}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">복지몰사업팀 주간보고</div>
+    <nav class="tabs">
+      <button class="tab" data-p="dash">대시보드</button>
+      <button class="tab" data-p="input">보고 입력</button>
+      <button class="tab" data-p="hist">주차 히스토리</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- 입력 -->
+  <section class="page" id="page-input">
+    <div class="editing-bar" id="editBar">
+      <span id="editMsg"></span>
+      <button class="btn sm" id="editCancel">수정 취소</button>
+    </div>
+    <div class="in-grid">
+      <div class="card">
+        <div class="card-h">
+          <h3>주간보고 붙여넣기</h3>
+          <button class="btn ghost sm" id="clearRaw">지우기</button>
+        </div>
+        <textarea id="raw" spellcheck="false" placeholder="실장님, 안녕하세요!
+복지몰사업팀 OOO입니다.
+
+26년 11월 3주차 주간보고 드립니다.
+
+1. 금주 진행사항
+-항목
+-항목
+
+2. 차주 진행예정
+-항목
+-항목
+
+* 여러 명의 보고를 이어서 붙여넣어도 사람별로 나눠서 저장됩니다."></textarea>
+      </div>
+      <div class="card">
+        <div class="card-h">
+          <h3>인식 결과</h3>
+          <span class="sub" id="pvCount"></span>
+        </div>
+        <div id="preview"><div class="pv-empty">왼쪽에 주간보고를 붙여넣으면 이름·주차·항목이 자동으로 인식됩니다.</div></div>
+        <div class="in-actions">
+          <button class="btn primary" id="saveBtn" disabled>저장하고 대시보드 보기</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 대시보드 -->
+  <section class="page" id="page-dash">
+    <div id="dash"></div>
+  </section>
+
+  <!-- 히스토리 -->
+  <section class="page" id="page-hist">
+    <div class="hist-head">
+      <div>
+        <h2>주차 히스토리</h2>
+        <div class="sub">주차를 누르면 해당 주의 대시보드로 이동합니다.</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn" id="expBtn">백업 내보내기</button>
+        <button class="btn" id="impBtn">백업 불러오기</button>
+        <input type="file" id="impFile" accept=".json,application/json" hidden>
+      </div>
+    </div>
+    <div class="card" style="overflow:hidden" id="hist"></div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const KEY = 'welfare-weekly-report-v1';
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  /* ---------- storage ---------- */
+  function load(){
+    try{
+      const d = JSON.parse(localStorage.getItem(KEY));
+      if(d && d.weeks) { d.members = d.members || []; return d; }
+    }catch(e){}
+    return {weeks:{}, members:[]};
+  }
+  let db = load();
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(db)); }
+    catch(e){ alert('브라우저 저장에 실패했습니다. 백업 내보내기로 데이터를 보관해 주세요.'); }
+  }
+
+  const wkId = (y,m,w) => `${y}-${String(m).padStart(2,'0')}-${w}`;
+  const wkLabel = (y,m,w) => `${String(y).slice(-2)}년 ${m}월 ${w}주차`;
+  const sortedWeekIds = () => Object.keys(db.weeks).sort().reverse();
+  const memberOrder = name => { const i = db.members.indexOf(name); return i < 0 ? 999 : i; };
+  const sortedReports = wk => Object.values(wk.reports).sort((a,b) => memberOrder(a.name) - memberOrder(b.name));
+
+  /* ---------- parser ---------- */
+  const NAME_RE = /사업팀\s*([가-힣A-Za-z]{2,10}?)\s*(?:입니다|이에요|드림)/;
+  const WEEK_RE = /(\d{2,4})\s*년\s*(\d{1,2})\s*월\s*(\d)\s*주\s*차/;
+  const SEC_RE  = /^\s*(?:\d+\s*[\.\)]|[①-⑩]|\[)\s*(.+?)\]?\s*$/;
+  const BULLET_RE = /^\s*(?:[-–—·•*▪◦○●]|\d+\s*[\.\)](?=\s*\S))\s*/;
+  const SUB_RE = /^\s*(?:ㄴ|└|>|→)\s*/;
+
+  function sectionKind(title){
+    if(/금주|이번\s*주|진행\s*사항|실적/.test(title) && !/차주|다음\s*주|예정/.test(title)) return 'thisWeek';
+    if(/차주|다음\s*주|예정|계획/.test(title)) return 'nextWeek';
+    return 'other';
+  }
+
+  function parseBlock(text){
+    const r = {name:'', year:null, month:null, week:null, thisWeek:[], nextWeek:[], other:[], raw:text.trim()};
+    const nm = text.match(NAME_RE); if(nm) r.name = nm[1];
+    const wm = text.match(WEEK_RE);
+    if(wm){ let y = +wm[1]; if(y < 100) y += 2000; r.year = y; r.month = +wm[2]; r.week = +wm[3]; }
+    let cur = null;
+    for(const line of text.split(/\r?\n/)){
+      const t = line.trim();
+      if(!t) continue;
+      // 섹션 제목 (예: "1. 금주 진행사항")
+      const sm = t.match(/^(?:\d+\s*[\.\)]|[①-⑩])\s*(.+)$/);
+      if(sm && /금주|차주|이번\s*주|다음\s*주|진행|예정|계획|이슈|건의|기타|공유|특이/.test(sm[1]) && !/^[-·•]/.test(t) && sm[1].length <= 20){
+        const kind = sectionKind(sm[1]);
+        if(kind === 'other'){ cur = {title: sm[1].trim(), items:[]}; r.other.push(cur); }
+        else cur = r[kind];
+        continue;
+      }
+      if(!cur) continue;
+      const list = Array.isArray(cur) ? cur : cur.items;
+      if(SUB_RE.test(t) && list.length){
+        list[list.length-1].subs.push(t.replace(SUB_RE,'').trim());
+        continue;
+      }
+      if(BULLET_RE.test(t)){
+        const txt = t.replace(BULLET_RE,'').trim();
+        if(txt) list.push({text:txt, subs:[]});
+        continue;
+      }
+      // 불릿 없는 줄: 인사말·맺음말은 무시, 그 외는 항목으로
+      if(/안녕하세요|감사합니다|드립니다\.?$|입니다\.?$|^(실장|팀장|본부장)님/.test(t)) { if(/감사합니다/.test(t)) cur = null; continue; }
+      list.push({text:t, subs:[]});
+    }
+    r.other = r.other.filter(o => o.items.length);
+    return r;
+  }
+
+  // 여러 명의 보고가 한번에 붙여넣어진 경우 "OOO입니다" 줄 기준으로 분리
+  function parseAll(text){
+    const lines = text.split(/\r?\n/);
+    const starts = [];
+    lines.forEach((l,i) => { if(NAME_RE.test(l)) starts.push(i); });
+    if(starts.length <= 1) return text.trim() ? [parseBlock(text)] : [];
+    const blocks = [];
+    starts.forEach((s,k) => {
+      let from = s;
+      // 바로 위 인사말 줄 포함
+      if(s > 0 && /안녕하세요|님,/.test(lines[s-1])) from = s-1;
+      if(k === 0) from = 0;
+      const to = k+1 < starts.length ? starts[k+1] - (/안녕하세요|님,/.test(lines[starts[k+1]-1]||'') ? 1 : 0) : lines.length;
+      blocks.push(lines.slice(from, to).join('\n'));
+    });
+    // 주차 문구가 첫 보고에만 있으면 나머지에도 적용
+    const res = blocks.map(parseBlock);
+    const base = res.find(r => r.year);
+    if(base) res.forEach(r => { if(!r.year){ r.year = base.year; r.month = base.month; r.week = base.week; } });
+    return res;
+  }
+
+  /* ---------- 출력 렌더 ---------- */
+  const DATE_RE = /\(?\s*((?:\d{1,2}\/\d{1,2})(?:\s*[~\-]\s*\d{1,2}(?:\/\d{1,2})?)?)\s*\)?\s*$/;
+  function itemHTML(it){
+    let text = it.text, date = '';
+    const m = text.match(DATE_RE);
+    if(m && m.index > 0){ date = m[1].replace(/\s+/g,''); text = text.slice(0, m.index).trim(); }
+    const subs = it.subs && it.subs.length ? `<ul class="subs">${it.subs.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>` : '';
+    return `<li>${esc(text)}${date ? `<span class="date">${esc(date)}</span>` : ''}${subs}</li>`;
+  }
+  const listHTML = arr => arr && arr.length ? `<ul class="items">${arr.map(itemHTML).join('')}</ul>` : `<div class="none">내용 없음</div>`;
+
+  let curWeek = null;
+  function renderDash(){
+    const ids = sortedWeekIds();
+    const el = $('#dash');
+    if(!ids.length){
+      el.innerHTML = `<div class="card dash-empty">아직 저장된 주간보고가 없습니다.<br><br><button class="btn primary" data-go="input">보고 입력하기</button></div>`;
+      return;
+    }
+    if(!curWeek || !db.weeks[curWeek]) curWeek = ids[0];
+    const wk = db.weeks[curWeek];
+    const reps = sortedReports(wk);
+    const nThis = reps.reduce((a,r)=>a+r.thisWeek.length,0);
+    const nNext = reps.reduce((a,r)=>a+r.nextWeek.length,0);
+    const idx = ids.indexOf(curWeek);
+    const upd = reps.map(r=>r.updatedAt||'').sort().pop();
+
+    el.innerHTML = `
+      <div class="dash-head">
+        <div class="dash-title">
+          <div class="team">복지몰사업팀 주간보고</div>
+          <h1>${esc(wk.label)}</h1>
+        </div>
+        <div class="dash-ctrl">
+          <button class="btn" id="prevWk" ${idx >= ids.length-1 ? 'disabled' : ''} title="이전 주차">‹</button>
+          <select id="wkSel">${ids.map(id=>`<option value="${id}" ${id===curWeek?'selected':''}>${esc(db.weeks[id].label)}</option>`).join('')}</select>
+          <button class="btn" id="nextWk" ${idx <= 0 ? 'disabled' : ''} title="다음 주차">›</button>
+          <button class="btn" id="printBtn">인쇄 / PDF</button>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="k">보고 인원</span><span class="v">${reps.length}<small>명</small></span></div>
+        <div class="stat"><span class="k">금주 진행사항</span><span class="v">${nThis}<small>건</small></span></div>
+        <div class="stat"><span class="k">차주 진행예정</span><span class="v">${nNext}<small>건</small></span></div>
+      </div>
+      <div class="board">
+        <div class="row head"><div>담당자</div><div>금주 진행사항</div><div>차주 진행예정</div></div>
+        ${reps.map(r => `
+          <div class="row">
+            <div class="cell who">
+              <span class="nm">${esc(r.name)}</span>
+              <span class="tools">
+                <button class="btn ghost sm" data-edit="${esc(r.name)}">수정</button>
+                <button class="btn ghost sm danger" data-del="${esc(r.name)}">삭제</button>
+              </span>
+            </div>
+            <div class="cell" data-l="금주 진행사항">${listHTML(r.thisWeek)}</div>
+            <div class="cell" data-l="차주 진행예정">${listHTML(r.nextWeek)}</div>
+            ${r.other && r.other.length ? `<div></div><div class="other">${r.other.map(o=>`<div><b>${esc(o.title)}</b>${o.items.map(i=>esc(i.text)).join(' / ')}</div>`).join('')}</div>` : ''}
+          </div>`).join('')}
+      </div>
+      <div class="foot">최종 수정 ${esc(upd || '-')}</div>`;
+
+    $('#wkSel').onchange = e => { curWeek = e.target.value; renderDash(); };
+    $('#prevWk').onclick = () => { curWeek = ids[idx+1]; renderDash(); };
+    $('#nextWk').onclick = () => { curWeek = ids[idx-1]; renderDash(); };
+    $('#printBtn').onclick = () => window.print();
+  }
+
+  function renderHist(){
+    const ids = sortedWeekIds();
+    const el = $('#hist');
+    if(!ids.length){ el.innerHTML = `<div class="dash-empty">저장된 주차가 없습니다.</div>`; return; }
+    el.innerHTML = `<table class="hist">
+      <thead><tr><th>주차</th><th>보고자</th><th class="num">인원</th><th class="num">금주</th><th class="num">차주</th><th class="upd">최종 수정</th><th></th></tr></thead>
+      <tbody>${ids.map(id => {
+        const wk = db.weeks[id], reps = sortedReports(wk);
+        const upd = reps.map(r=>r.updatedAt||'').sort().pop() || '-';
+        return `<tr data-open="${id}">
+          <td class="wk">${esc(wk.label)}</td>
+          <td class="names">${reps.map(r=>esc(r.name)).join(', ')}</td>
+          <td class="num">${reps.length}명</td>
+          <td class="num">${reps.reduce((a,r)=>a+r.thisWeek.length,0)}건</td>
+          <td class="num">${reps.reduce((a,r)=>a+r.nextWeek.length,0)}건</td>
+          <td class="upd sub">${esc(upd)}</td>
+          <td class="act"><button class="btn ghost sm danger" data-delwk="${id}">주차 삭제</button></td>
+        </tr>`;}).join('')}</tbody></table>`;
+  }
+
+  /* ---------- 입력 ---------- */
+  let parsed = [];
+  let editing = null; // {weekId, name}
+
+  function renderPreview(){
+    const box = $('#preview');
+    parsed = parseAll($('#raw').value);
+    $('#pvCount').textContent = parsed.length ? `${parsed.length}건 인식` : '';
+    if(!parsed.length){
+      box.innerHTML = `<div class="pv-empty">왼쪽에 주간보고를 붙여넣으면 이름·주차·항목이 자동으로 인식됩니다.</div>`;
+      $('#saveBtn').disabled = true; return;
+    }
+    box.innerHTML = parsed.map((r,i) => `
+      <div class="pv" data-i="${i}">
+        <div class="pv-meta">
+          <label>이름 <input class="name" data-f="name" value="${esc(r.name)}"></label>
+          <label><input class="num" data-f="year" type="number" value="${r.year ? String(r.year).slice(-2) : ''}">년</label>
+          <label><input class="num" data-f="month" type="number" min="1" max="12" value="${r.month ?? ''}">월</label>
+          <label><input class="num" data-f="week" type="number" min="1" max="6" value="${r.week ?? ''}">주차</label>
+        </div>
+        <div class="pv-msg"></div>
+        <div class="pv-sec">금주 진행사항 ${r.thisWeek.length}건</div>
+        <ul>${r.thisWeek.map(it=>`<li>${esc(it.text)}${it.subs.map(s=>`<br><span class="sub">ㄴ ${esc(s)}</span>`).join('')}</li>`).join('') || '<li class="sub">없음</li>'}</ul>
+        <div class="pv-sec">차주 진행예정 ${r.nextWeek.length}건</div>
+        <ul>${r.nextWeek.map(it=>`<li>${esc(it.text)}${it.subs.map(s=>`<br><span class="sub">ㄴ ${esc(s)}</span>`).join('')}</li>`).join('') || '<li class="sub">없음</li>'}</ul>
+        ${r.other.map(o=>`<div class="pv-sec">${esc(o.title)} ${o.items.length}건</div><ul>${o.items.map(it=>`<li>${esc(it.text)}</li>`).join('')}</ul>`).join('')}
+      </div>`).join('');
+    box.querySelectorAll('.pv input').forEach(inp => inp.addEventListener('input', e => {
+      const i = +e.target.closest('.pv').dataset.i, f = e.target.dataset.f;
+      let v = e.target.value.trim();
+      if(f === 'name') parsed[i].name = v;
+      else { v = v === '' ? null : +v; if(f === 'year' && v !== null && v < 100) v += 2000; parsed[i][f] = v; }
+      validate();
+    }));
+    validate();
+  }
+
+  function validate(){
+    let ok = true;
+    document.querySelectorAll('#preview .pv').forEach(el => {
+      const r = parsed[+el.dataset.i], msgs = [];
+      if(!r.name) msgs.push('<div class="pv-warn">이름을 찾지 못했습니다. 직접 입력해 주세요.</div>');
+      if(!r.year || !r.month || !r.week) msgs.push('<div class="pv-warn">주차를 찾지 못했습니다. 직접 입력해 주세요.</div>');
+      if(!r.thisWeek.length && !r.nextWeek.length) msgs.push('<div class="pv-warn">진행사항 항목을 찾지 못했습니다. "1. 금주 진행사항" 형식을 확인해 주세요.</div>');
+      if(r.name && r.year && r.month && r.week){
+        const id = wkId(r.year, r.month, r.week);
+        const isSelf = editing && editing.weekId === id && editing.name === r.name;
+        if(!isSelf && db.weeks[id] && db.weeks[id].reports[r.name]) msgs.push(`<div class="pv-exists">${esc(wkLabel(r.year,r.month,r.week))}에 ${esc(r.name)} 님 보고가 이미 있습니다. 저장하면 덮어씁니다.</div>`);
+      }
+      if(msgs.some(m => m.includes('pv-warn'))) ok = false;
+      el.querySelector('.pv-msg').innerHTML = msgs.join('');
+    });
+    $('#saveBtn').disabled = !ok || !parsed.length;
+  }
+
+  function stamp(){
+    const d = new Date(), p = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+
+  function doSave(){
+    if(!parsed.length) return;
+    if(editing){
+      const old = db.weeks[editing.weekId];
+      if(old){ delete old.reports[editing.name]; if(!Object.keys(old.reports).length) delete db.weeks[editing.weekId]; }
+    }
+    let lastId = null;
+    parsed.forEach(r => {
+      const id = wkId(r.year, r.month, r.week);
+      if(!db.weeks[id]) db.weeks[id] = {year:r.year, month:r.month, week:r.week, label:wkLabel(r.year,r.month,r.week), reports:{}};
+      db.weeks[id].reports[r.name] = {name:r.name, thisWeek:r.thisWeek, nextWeek:r.nextWeek, other:r.other, raw:r.raw, updatedAt:stamp()};
+      if(!db.members.includes(r.name)) db.members.push(r.name);
+      lastId = id;
+    });
+    save();
+    const n = parsed.length;
+    exitEdit(); $('#raw').value = ''; renderPreview();
+    curWeek = lastId;
+    go('dash');
+    toast(`${n}건 저장했습니다.`);
+  }
+
+  function startEdit(name){
+    const r = db.weeks[curWeek].reports[name];
+    editing = {weekId: curWeek, name};
+    $('#raw').value = r.raw || rebuildRaw(r, db.weeks[curWeek]);
+    $('#editMsg').textContent = `${db.weeks[curWeek].label} · ${name} 님 보고를 수정 중입니다. 원문을 고친 뒤 저장하세요.`;
+    $('#editBar').classList.add('on');
+    $('#saveBtn').textContent = '수정 내용 저장';
+    go('input');
+    renderPreview();
+  }
+  function exitEdit(){
+    editing = null;
+    $('#editBar').classList.remove('on');
+    $('#saveBtn').textContent = '저장하고 대시보드 보기';
+  }
+  function rebuildRaw(r, wk){
+    const sec = a => a.map(i => '-' + i.text + i.subs.map(s => '\n ㄴ' + s).join('')).join('\n');
+    return `복지몰사업팀 ${r.name}입니다.\n\n${wk.label} 주간보고 드립니다.\n\n1. 금주 진행사항\n${sec(r.thisWeek)}\n\n2. 차주 진행예정\n${sec(r.nextWeek)}`;
+  }
+
+  /* ---------- 내비게이션 ---------- */
+  function go(p){
+    document.querySelectorAll('.page').forEach(el => el.classList.toggle('on', el.id === 'page-' + p));
+    document.querySelectorAll('.tab').forEach(el => el.classList.toggle('on', el.dataset.p === p));
+    if(p === 'dash') renderDash();
+    if(p === 'hist') renderHist();
+    window.scrollTo(0,0);
+  }
+
+  let tt;
+  function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(()=>t.classList.remove('on'), 1800); }
+
+  document.addEventListener('click', e => {
+    const t = e.target.closest('[data-p],[data-go],[data-edit],[data-del],[data-delwk],[data-open]');
+    if(!t) return;
+    if(t.dataset.p) return go(t.dataset.p);
+    if(t.dataset.go) return go(t.dataset.go);
+    if(t.dataset.edit) return startEdit(t.dataset.edit);
+    if(t.dataset.del){
+      const name = t.dataset.del;
+      if(!confirm(`${db.weeks[curWeek].label} ${name} 님 보고를 삭제할까요?`)) return;
+      delete db.weeks[curWeek].reports[name];
+      if(!Object.keys(db.weeks[curWeek].reports).length) delete db.weeks[curWeek];
+      save(); renderDash(); toast('삭제했습니다.'); return;
+    }
+    if(t.dataset.delwk){
+      e.stopPropagation();
+      const id = t.dataset.delwk;
+      if(!confirm(`${db.weeks[id].label} 보고 전체를 삭제할까요?`)) return;
+      delete db.weeks[id]; save(); renderHist(); toast('삭제했습니다.'); return;
+    }
+    if(t.dataset.open){ curWeek = t.dataset.open; go('dash'); }
+  });
+
+  $('#raw').addEventListener('input', renderPreview);
+  $('#clearRaw').onclick = () => { $('#raw').value = ''; renderPreview(); };
+  $('#saveBtn').onclick = doSave;
+  $('#editCancel').onclick = () => { exitEdit(); $('#raw').value = ''; renderPreview(); go('dash'); };
+
+  $('#expBtn').onclick = () => {
+    const blob = new Blob([JSON.stringify(db, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const d = new Date();
+    a.download = `주간보고_백업_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+  $('#impBtn').onclick = () => $('#impFile').click();
+  $('#impFile').onchange = e => {
+    const f = e.target.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      try{
+        const d = JSON.parse(rd.result);
+        if(!d.weeks) throw 0;
+        const merge = confirm('기존 데이터와 합칠까요?\n[확인] 합치기 (같은 주차·이름은 백업 내용으로 교체)\n[취소] 백업으로 전체 교체');
+        if(merge){
+          Object.entries(d.weeks).forEach(([id,w]) => {
+            if(!db.weeks[id]) db.weeks[id] = {...w, reports:{}};
+            Object.assign(db.weeks[id].reports, w.reports);
+          });
+          (d.members||[]).forEach(m => { if(!db.members.includes(m)) db.members.push(m); });
+        } else db = {weeks:d.weeks, members:d.members||[]};
+        save(); renderHist(); toast('백업을 불러왔습니다.');
+      }catch(err){ alert('백업 파일 형식이 올바르지 않습니다.'); }
+      e.target.value = '';
+    };
+    rd.readAsText(f);
+  };
+
+  go(sortedWeekIds().length ? 'dash' : 'input');
+})();
+</script>
+</body>
+</html>
